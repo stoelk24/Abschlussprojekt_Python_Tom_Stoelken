@@ -1,0 +1,297 @@
+[
+    {
+        "id": "89fd6648f0219e2a",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "e709e30524fe5886",
+        "type": "mqtt in",
+        "z": "89fd6648f0219e2a",
+        "name": "",
+        "topic": "zugang",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "4c3fc8829aed641b",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 140,
+        "wires": [
+            [
+                "809799328738bcfc"
+            ]
+        ]
+    },
+    {
+        "id": "a157eb27805e6d05",
+        "type": "mysql",
+        "z": "89fd6648f0219e2a",
+        "mydb": "d63b800fa069b59b",
+        "name": "Datenbank",
+        "x": 550,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "809799328738bcfc",
+        "type": "function",
+        "z": "89fd6648f0219e2a",
+        "name": "Datenbank Query",
+        "func": "const name = msg.payload.Name;\nconst datum = msg.payload.Datum;\nconst temperatur = msg.payload.Temperatur;\nlet luftfeuchtigkeit = msg.payload.Luftfeuchtigkeit;\n\n// Falls Luftfeuchtigkeit ein String mit \"%\" ist → Zahl extrahieren\nif (typeof luftfeuchtigkeit === \"string\") {\n    luftfeuchtigkeit = parseFloat(luftfeuchtigkeit.replace(\"%\", \"\").trim());\n}\n\nmsg.topic = \"INSERT INTO zugangsdatenbank (Name, Datum, Temperatur, Luftfeuchtigkeit) VALUES (?, ?, ?, ?)\";\nmsg.payload = [name, datum, temperatur, luftfeuchtigkeit];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 280,
+        "wires": [
+            [
+                "a157eb27805e6d05",
+                "7c2151025d7ad5c9"
+            ]
+        ]
+    },
+    {
+        "id": "7c2151025d7ad5c9",
+        "type": "debug",
+        "z": "89fd6648f0219e2a",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "6b2591e6b02ca431",
+        "type": "function",
+        "z": "89fd6648f0219e2a",
+        "name": "Read Data",
+        "func": "msg.topic = \"SELECT Name, Datum, Temperatur, Luftfeuchtigkeit FROM zugangsdatenbank ORDER BY Datum DESC LIMIT 50\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 200,
+        "wires": [
+            [
+                "14a753b5850e1134"
+            ]
+        ]
+    },
+    {
+        "id": "e252c512824f53ef",
+        "type": "function",
+        "z": "89fd6648f0219e2a",
+        "name": "function 1",
+        "func": "// Ergebnisstruktur für ui_table vorbereiten\nmsg.payload = msg.payload.map(row => {\n    return {\n        Name: row.Name,\n        Datum: row.Datum,\n        Temperatur: row.Temperatur + \" °C\",\n        Luftfeuchtigkeit: row.Luftfeuchtigkeit + \" %\"\n    };\n});\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 360,
+        "wires": [
+            [
+                "c9369c358eb6bd9b",
+                "263220853a4fd14d"
+            ]
+        ]
+    },
+    {
+        "id": "3d450c6eeb5983ea",
+        "type": "debug",
+        "z": "89fd6648f0219e2a",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1080,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "c9369c358eb6bd9b",
+        "type": "debug",
+        "z": "89fd6648f0219e2a",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 940,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "12e50dda9e3217d3",
+        "type": "inject",
+        "z": "89fd6648f0219e2a",
+        "name": "",
+        "props": [],
+        "repeat": "5",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 350,
+        "y": 200,
+        "wires": [
+            [
+                "6b2591e6b02ca431"
+            ]
+        ]
+    },
+    {
+        "id": "14a753b5850e1134",
+        "type": "mysql",
+        "z": "89fd6648f0219e2a",
+        "mydb": "d63b800fa069b59b",
+        "name": "Datenbank",
+        "x": 810,
+        "y": 200,
+        "wires": [
+            [
+                "e252c512824f53ef",
+                "3d450c6eeb5983ea"
+            ]
+        ]
+    },
+    {
+        "id": "263220853a4fd14d",
+        "type": "ui_table",
+        "z": "89fd6648f0219e2a",
+        "group": "2537fdce9c8bfebb",
+        "name": "Letzte Zugänge",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "columns": [
+            {
+                "field": "Name",
+                "title": "Name",
+                "width": "150",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {}
+            },
+            {
+                "field": "Datum",
+                "title": "Datum",
+                "width": "200",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {}
+            },
+            {
+                "field": "Temperatur",
+                "title": "Temperatur (°C)",
+                "width": "150",
+                "align": "center",
+                "formatter": "plaintext",
+                "formatterParams": {}
+            },
+            {
+                "field": "Luftfeuchtigkeit",
+                "title": "Luftfeuchtigkeit (%)",
+                "width": "170",
+                "align": "center",
+                "formatter": "plaintext",
+                "formatterParams": {}
+            }
+        ],
+        "outputs": 0,
+        "cts": true,
+        "x": 1000,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "4c3fc8829aed641b",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "d63b800fa069b59b",
+        "type": "MySQLdatabase",
+        "name": "zugangsdatenbank",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "bztg_datenbank",
+        "tz": "+2",
+        "charset": "UTF8"
+    },
+    {
+        "id": "2537fdce9c8bfebb",
+        "type": "ui_group",
+        "name": "Stempelzeiten",
+        "tab": "6f7837caf9888c6d",
+        "order": 2,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "6f7837caf9888c6d",
+        "type": "ui_tab",
+        "name": "RFID-Abfrage",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
